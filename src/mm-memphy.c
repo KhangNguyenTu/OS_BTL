@@ -163,6 +163,19 @@ int MEMPHY_dump(struct memphy_struct *mp)
   /*TODO dump memphy contnt mp->storage
    *     for tracing the memory content
    */
+  if (mp == NULL || mp->storage == NULL) return -1;
+
+  printf("MEMPHY dump: \n");
+  struct framephy_struct *fp;
+  for (fp = mp->used_fp_list; fp != NULL; fp = fp->fp_next){
+     if (fp->fpn == 0) continue; //frame 0 is reserved
+     for (int i = 0; i < PAGING_PAGESZ; ++i){
+        int addr = fp->fpn * PAGING_PAGESZ + i;
+        if (mp->storage[addr] != 0)
+        printf("Address 0x%0*lx holds value 0x%0*lx\n", DIV_ROUND_UP(PAGING_CPU_BUS_WIDTH, 4), addr, 
+           DIV_ROUND_UP(PAGING_CPU_BUS_WIDTH, 4), mp->storage[addr]);
+     }      
+  }
    return 0;
 }
 
