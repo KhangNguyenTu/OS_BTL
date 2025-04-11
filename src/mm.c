@@ -113,24 +113,24 @@ int vmap_page_range(struct pcb_t *caller,           // process call
   }
   // Handle case of not enough memory - unmap all mapped pages
   if (fpit->fp_next != NULL && pgit < pgnum) {
-    t_addr = ret_rg->rg_start;
-    for (int i = 0; i < pgit; i++) {
-      int rollback_pgn = PAGING_PGN(t_addr);
+    // t_addr = ret_rg->rg_start;
+    // for (int i = 0; i < pgit; i++) {
+    //   int rollback_pgn = PAGING_PGN(t_addr);
   
-      // Clear the PTE entry 
-      uint32_t *pte = &caller->mm->pgd[rollback_pgn];
-      *pte = 0;
+    //   // Clear the PTE entry 
+    //   uint32_t *pte = &caller->mm->pgd[rollback_pgn];
+    //   *pte = 0;
   
-      // Remove from FIFO
-      struct pgn_t *tmp = caller->mm->fifo_pgn;
-      if (tmp != NULL) {
-          caller->mm->fifo_pgn = tmp->pg_next;
-          free(tmp);
-      }
+    //   // Remove from FIFO
+    //   struct pgn_t *tmp = caller->mm->fifo_pgn;
+    //   if (tmp != NULL) {
+    //       caller->mm->fifo_pgn = tmp->pg_next;
+    //       free(tmp);
+    //   }
   
-      t_addr += PAGING_PAGESZ;
-    }
-    ret_rg->rg_end = ret_rg->rg_start = addr;
+    //   t_addr += PAGING_PAGESZ;
+    // }
+    // ret_rg->rg_end = ret_rg->rg_start = addr;
     free(fpit);
     return -1;
   }
@@ -160,32 +160,32 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
     {
       newfp_str = malloc(sizeof(struct framephy_struct));
       if (newfp_str == NULL){
-        err = -1;
-        break;
+        return -3000;
       }
       newfp_str->fpn = fpn;
+      newfp_str->owner = caller->mm;
       newfp_str->fp_next = *frm_lst;
       *frm_lst = newfp_str;
+      MEMPHY_put_usedfp(caller->mram,fpn);
     }
     else{
-      err = -1;
-      break;
+      return -3000;
     }
   }
 
   // TODO: ERROR CODE of obtaining somes but not enough frames
-  if (err == -1)
-  {
-      // Rollback: free all previously allocated frames and the nodes we added
-      for (int i = 0; i < pgit; i++) {
-          struct framephy_struct *tmp = *frm_lst;
-          *frm_lst = (*frm_lst)->fp_next;
-          free(tmp);
-      }
+  // if (err == -1)
+  // {
+  //     // Rollback: free all previously allocated frames and the nodes we added
+  //     // for (int i = 0; i < pgit; i++) {
+  //     //     struct framephy_struct *tmp = *frm_lst;
+  //     //     *frm_lst = (*frm_lst)->fp_next;
+  //     //     free(tmp);
+  //     // }
   
 
-      return -1;
-  }
+  //     return -1;
+  // }
   
 
   return 0;
